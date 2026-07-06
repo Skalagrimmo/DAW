@@ -1,0 +1,6 @@
+{
+  "name": "DAW Studio",
+  "description": "Digital Audio Workstation featuring a custom synthesiser engine with ADSR envelope, filter controls, a built-in drum machine, pattern sequencer, FL-Studio style piano roll, and multi-channel mixer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
