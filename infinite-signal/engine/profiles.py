@@ -45,12 +45,20 @@ PROFILES = {
         "bpm": (68, 94),
         "scale": "minor",
         "progression": (0, 2, 5, 4),
-        "melody_density": 0.42,
-        "arp_density": 0.24,
-        "drum_pattern": "sparse",
+        "melody_density": 0.52,
+        "arp_density": 0.36,
+        "drum_pattern": "pulse",
         "wave": "pulse",
-        "brightness": 0.42,
+        "brightness": 0.48,
         "swing": 0.08,
+        # Wide-leap, minor-key call/response contour selected from v0.3.3
+        # listening tests. Eight eighth-note slots per bar, four-bar phrase.
+        "phrase": (
+            (0, 4, 7, 5, 9, 7, 5, 4),
+            (2, 5, 9, 7, 10, 9, 7, 5),
+            (4, 7, 10, 9, 7, 5, 4, 2),
+            (2, 5, 4, 2, 0, None, 0, None),
+        ),
     },
     "dungeon": {
         "label": "Dungeon",
