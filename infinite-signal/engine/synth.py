@@ -1,11 +1,11 @@
 """Small chip-style PCM renderer.
 
-This module returns mono signed 16-bit PCM bytes. It uses only math and
-standard Python operations; the composition engine itself does not depend
-on this renderer.
+The score generator is backend-independent. This CPython renderer produces
+mono signed 16-bit PCM and keeps the working mix in a compact float array.
 """
 
 import math
+from array import array
 
 SAMPLE_RATE = 22050
 
@@ -29,7 +29,7 @@ def render_pcm(song, sample_rate=SAMPLE_RATE):
     total_steps = song["bars"] * song["steps_per_bar"]
     seconds_per_step = 60.0 / bpm / 4.0
     frame_count = int(total_steps * seconds_per_step * sample_rate)
-    mix = [0.0] * frame_count
+    mix = array("f", [0.0]) * frame_count
 
     for event in song["events"]:
         start = int(event["step"] * seconds_per_step * sample_rate)
@@ -57,12 +57,13 @@ def render_pcm(song, sample_rate=SAMPLE_RATE):
                 value = _wave_value(local * phase_step, voice)
             mix[index] += value * volume * envelope
 
-    output = bytearray()
-    for sample in mix:
+    output = bytearray(frame_count * 2)
+    for index, sample in enumerate(mix):
         sample = max(-1.0, min(1.0, sample * 0.72))
         value = int(sample * 32767)
         if value < 0:
             value += 65536
-        output.append(value & 255)
-        output.append((value >> 8) & 255)
+        offset = index * 2
+        output[offset] = value & 255
+        output[offset + 1] = (value >> 8) & 255
     return bytes(output)
