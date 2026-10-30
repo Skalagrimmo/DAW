@@ -61,7 +61,7 @@ class GeneratorTests(unittest.TestCase):
         song = generate_song("space", bars=1, seed=421, bpm=90)
         bass = [
             event for event in song["events"]
-            if event["voice"] == "triangle" and event["step"] in (0, 4, 8, 12)
+            if event["voice"] == "triangle" and event["length"] == 4 and event["step"] in (0, 4, 8, 12)
         ]
         self.assertEqual(len(bass), 4)
         chord = song["harmony"][0]["notes"]
