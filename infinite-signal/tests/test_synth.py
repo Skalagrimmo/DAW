@@ -5,7 +5,7 @@ import wave
 
 from engine.generator import generate_song
 from engine.radio import generate_transmission
-from engine.synth import render_pcm
+from engine.synth import _wave_value, render_pcm
 from engine.wav_export import write_wav
 
 
@@ -20,6 +20,14 @@ class SynthTests(unittest.TestCase):
         song = generate_song("retro-arcade", bars=1, seed=7, bpm=140)
         pcm = render_pcm(song, sample_rate=8000)
         self.assertTrue(any(value != 0 for value in pcm))
+
+    def test_pulse_wave_has_twenty_five_percent_duty(self):
+        self.assertEqual(_wave_value(0.10, "pulse"), 1.0)
+        self.assertEqual(_wave_value(0.40, "pulse"), -1.0)
+
+    def test_triangle_wave_has_expected_turning_points(self):
+        self.assertAlmostEqual(_wave_value(0.0, "triangle"), -1.0)
+        self.assertAlmostEqual(_wave_value(0.5, "triangle"), 1.0)
 
     def test_wav_export_has_expected_format_and_duration(self):
         song = generate_song("space", bars=2, seed=42, bpm=120)
