@@ -35,7 +35,7 @@ jobs:
               with wave.open(path, "rb") as audio:
                   assert audio.getnchannels() == 1
                   assert audio.getsampwidth() == 2
-                  assert audio.getframerate() == 44100
+                  assert audio.getframerate() == 22050
                   assert audio.getnframes() > 0
                   print(path, audio.getnframes(), "frames")
           PY
