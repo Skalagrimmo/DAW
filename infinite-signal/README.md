@@ -6,7 +6,7 @@ This is an isolated Python project inside the DAW repository. It does not modify
 
 ## Current milestone: v0.3 — Continuous Radio (musical refinement in progress)
 
-The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current refinement adds a more deliberate phrase contour, stronger chord anchors, moving triangle bass, pulse-wave leads and shorter, cleaner percussive envelopes.
+The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current pass adds a four-bar call-and-response melody, a tonic-resolving final phrase, a more audible triangle bass line, regular up/down triad arpeggios and quieter percussion.
 
 - Ten narrative profiles: Cybernetic, Sci-Fi, Epic, Space, Dungeon, Industrial, Adventure, Horror, Retro Arcade and Ambient.
 - Deterministic generation: the same profile sequence + seed produces the same score.
@@ -70,6 +70,7 @@ This makes the music engine reusable: a game can request a mood sequence for a l
 - [x] v0.2 — phrase structure, chord-aware layers and cadence.
 - [x] v0.3 — multi-profile continuous score with bar-boundary overlaps.
 - [ ] v0.3.1 — musical refinement: classic 8-bit phrasing, bass movement and pulse synthesis.
+- [ ] v0.3.2 — phrase contour, regular arpeggios, balanced bass and percussion.
 - [ ] v0.4 — live playback backend and longer-running stream scheduler.
 - [ ] v0.5 — visual radio interface.
 - [ ] v1.0 — MicroPython hardware backend.
