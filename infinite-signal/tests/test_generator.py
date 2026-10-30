@@ -51,9 +51,10 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual(PHRASE[3][2], 0)
         self.assertIsNone(PHRASE[3][3])
 
-    def test_space_uses_selected_wide_leap_phrase_and_pulse(self):
+    def test_space_default_is_wide_leap_and_pulse(self):
         song = generate_song("space", bars=4, seed=421, bpm=110)
-        expected = PROFILES["space"]["phrase"]
+        expected = PROFILES["space"]["phrase_variants"]["wide-leap"]
+        self.assertEqual(song["phrase_variant"], "wide-leap")
         self.assertEqual(song["motif"], list(expected[0]))
         self.assertEqual(len(expected), 4)
         self.assertEqual(expected[0], (0, 4, 7, 5, 9, 7, 5, 4))
@@ -65,6 +66,34 @@ class GeneratorTests(unittest.TestCase):
             [event["step"] for event in noise],
             [4, 12, 20, 28, 36, 44, 52, 60],
         )
+
+    def test_space_minor_hook_is_selectable_and_deterministic(self):
+        first = generate_song(
+            "space", bars=16, seed=421, bpm=110,
+            phrase_variant="minor-hook",
+        )
+        second = generate_song(
+            "space", bars=16, seed=421, bpm=110,
+            phrase_variant="minor-hook",
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(first["phrase_variant"], "minor-hook")
+        self.assertEqual(
+            first["motif"],
+            list(PROFILES["space"]["phrase_variants"]["minor-hook"][0]),
+        )
+        self.assertNotEqual(
+            first["motif"],
+            generate_song("space", bars=16, seed=421, bpm=110)["motif"],
+        )
+
+    def test_unknown_phrase_variant_is_rejected(self):
+        with self.assertRaises(ValueError):
+            generate_song("space", bars=8, seed=421, phrase_variant="unknown")
+
+    def test_profile_without_variants_rejects_variant_argument(self):
+        with self.assertRaises(ValueError):
+            generate_song("retro-arcade", bars=8, seed=421, phrase_variant="minor-hook")
 
     def test_melody_uses_eighth_note_grid(self):
         song = generate_song("retro-arcade", bars=4, seed=421, bpm=140)
