@@ -6,12 +6,12 @@ This is an isolated Python project inside the DAW repository. It does not modify
 
 ## Current milestone: v0.3 — Continuous Radio (musical refinement in progress)
 
-The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current pass uses a four-bar call-and-response melody, a tonic-resolving final phrase, a more audible triangle bass line, regular up/down triad arpeggios and profile-specific rhythmic foundations. Space now uses the listener-selected wide-leap minor motif over a steady pulse. The musical reference is the compositional approach of Jesper Kyd's *Adventures of Batman & Robin* soundtrack, adapted to our own 8-bit voice and PCM stack rather than copied literally.
+The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current pass uses a four-bar call-and-response melody, a tonic-resolving final phrase, a more audible triangle bass line, regular up/down triad arpeggios and profile-specific rhythmic foundations. Space keeps both listener-approved minor motifs — Wide Leap and Minor Hook — selectable in Composer, with Wide Leap as the default over a steady pulse. The musical reference is the compositional approach of Jesper Kyd's *Adventures of Batman & Robin* soundtrack, adapted to our own 8-bit voice and PCM stack rather than copied literally.
 
 - Ten narrative profiles: Cybernetic, Sci-Fi, Epic, Space, Dungeon, Industrial, Adventure, Horror, Retro Arcade and Ambient.
 - Deterministic generation: the same profile sequence + seed produces the same score.
 - Chord-aware bass, arpeggios and melody, with four-bar motifs and controlled variation.
-- Profile-specific melodic contours, including Space's wide-leap minor call/response phrase.
+- Profile-specific melodic contours, including selectable Space variants: Wide Leap (default) and Minor Hook.
 - Multi-profile transmissions with a shared tempo and tonal center.
 - One-bar section overlaps with outgoing fade-down and incoming fade-up.
 - Two operating modes: standalone Composer and multi-profile Radio.
@@ -25,6 +25,7 @@ Standalone composition:
 ```bash
 python radio.py --mode composer --profile retro-arcade --bars 8 --seed 421 --bpm 140 --wav retro-arcade.wav
 python radio.py --mode composer --profile space --bars 8 --seed 421 --wav space-421.wav
+python radio.py --mode composer --profile space --variant minor-hook --bars 16 --seed 421 --bpm 110 --wav space-minor-hook.wav
 ```
 
 Continuous multi-mood radio:
@@ -72,7 +73,7 @@ This makes the music engine reusable: a game can request a mood sequence for a l
 - [x] v0.3 — multi-profile continuous score with bar-boundary overlaps.
 - [x] v0.3.1 — musical refinement: classic 8-bit phrasing, bass movement and pulse foundation.
 - [x] v0.3.2 — phrase contour, regular arpeggios, balanced bass and percussion.
-- [x] v0.3.3 — Space wide-leap motif and pulse selected from listening tests.
+- [x] v0.3.3 — Space wide-leap and minor-hook motifs retained as selectable variants; longer comparison samples generated in CI.
 - [ ] v0.4 — live playback backend and longer-running stream scheduler.
 - [ ] v0.5 — visual radio interface.
 - [ ] v1.0 — MicroPython hardware backend.
