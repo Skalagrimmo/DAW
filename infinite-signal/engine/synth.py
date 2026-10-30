@@ -4,7 +4,6 @@ The score generator is backend-independent. This CPython renderer produces
 mono signed 16-bit PCM and keeps the working mix in a compact float array.
 """
 
-import math
 from array import array
 
 SAMPLE_RATE = 22050
