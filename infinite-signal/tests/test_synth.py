@@ -1,7 +1,12 @@
+import os
+import tempfile
 import unittest
+import wave
 
 from engine.generator import generate_song
+from engine.radio import generate_transmission
 from engine.synth import render_pcm
+from engine.wav_export import write_wav
 
 
 class SynthTests(unittest.TestCase):
@@ -15,6 +20,24 @@ class SynthTests(unittest.TestCase):
         song = generate_song("retro-arcade", bars=1, seed=7, bpm=140)
         pcm = render_pcm(song, sample_rate=8000)
         self.assertTrue(any(value != 0 for value in pcm))
+
+    def test_wav_export_has_expected_format_and_duration(self):
+        song = generate_song("space", bars=2, seed=42, bpm=120)
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "test.wav")
+            write_wav(song, path, sample_rate=8000)
+            with wave.open(path, "rb") as audio:
+                self.assertEqual(audio.getnchannels(), 1)
+                self.assertEqual(audio.getsampwidth(), 2)
+                self.assertEqual(audio.getframerate(), 8000)
+                self.assertEqual(audio.getnframes(), 2 * 16 * 8000 // 8)
+
+    def test_radio_score_renders_non_silent_pcm(self):
+        song = generate_transmission(("space", "sci-fi"), 3, 123)
+        pcm = render_pcm(song, sample_rate=8000)
+        self.assertTrue(any(value != 0 for value in pcm))
+        expected_frames = int(song["bars"] * 16 * (60.0 / song["bpm"] / 4) * 8000)
+        self.assertEqual(len(pcm), expected_frames * 2)
 
 
 if __name__ == "__main__":
