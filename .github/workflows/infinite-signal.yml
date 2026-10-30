@@ -39,3 +39,12 @@ jobs:
                   assert audio.getnframes() > 0
                   print(path, audio.getnframes(), "frames")
           PY
+      - name: Upload audio samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: infinite-signal-samples
+          path: |
+            /tmp/infinite-signal-composer.wav
+            /tmp/infinite-signal-radio.wav
+          if-no-files-found: error
+          retention-days: 14
