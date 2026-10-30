@@ -6,11 +6,12 @@ This is an isolated Python project inside the DAW repository. It does not modify
 
 ## Current milestone: v0.3 — Continuous Radio (musical refinement in progress)
 
-The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current pass adds a four-bar call-and-response melody, a tonic-resolving final phrase, a more audible triangle bass line, regular up/down triad arpeggios and quieter percussion.
+The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current pass uses a four-bar call-and-response melody, a tonic-resolving final phrase, a more audible triangle bass line, regular up/down triad arpeggios and profile-specific rhythmic foundations. Space now uses the listener-selected wide-leap minor motif over a steady pulse. The musical reference is the compositional approach of Jesper Kyd's *Adventures of Batman & Robin* soundtrack, adapted to our own 8-bit voice and PCM stack rather than copied literally.
 
 - Ten narrative profiles: Cybernetic, Sci-Fi, Epic, Space, Dungeon, Industrial, Adventure, Horror, Retro Arcade and Ambient.
 - Deterministic generation: the same profile sequence + seed produces the same score.
-- Chord-aware bass, arpeggios and melody, with two-bar motifs and controlled variation.
+- Chord-aware bass, arpeggios and melody, with four-bar motifs and controlled variation.
+- Profile-specific melodic contours, including Space's wide-leap minor call/response phrase.
 - Multi-profile transmissions with a shared tempo and tonal center.
 - One-bar section overlaps with outgoing fade-down and incoming fade-up.
 - Two operating modes: standalone Composer and multi-profile Radio.
@@ -69,8 +70,9 @@ This makes the music engine reusable: a game can request a mood sequence for a l
 - [x] v0.1 — seeded score generation and WAV export.
 - [x] v0.2 — phrase structure, chord-aware layers and cadence.
 - [x] v0.3 — multi-profile continuous score with bar-boundary overlaps.
-- [ ] v0.3.1 — musical refinement: classic 8-bit phrasing, bass movement and pulse synthesis.
-- [ ] v0.3.2 — phrase contour, regular arpeggios, balanced bass and percussion.
+- [x] v0.3.1 — musical refinement: classic 8-bit phrasing, bass movement and pulse foundation.
+- [x] v0.3.2 — phrase contour, regular arpeggios, balanced bass and percussion.
+- [x] v0.3.3 — Space wide-leap motif and pulse selected from listening tests.
 - [ ] v0.4 — live playback backend and longer-running stream scheduler.
 - [ ] v0.5 — visual radio interface.
 - [ ] v1.0 — MicroPython hardware backend.
