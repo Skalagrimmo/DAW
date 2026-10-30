@@ -21,7 +21,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run generator tests
+      - name: Run generator and synthesis tests
         run: python -m unittest discover -s tests -v
-      - name: Generate sample transmission
-        run: python radio.py --profile space --bars 4 --seed 421 --wav /tmp/infinite-signal.wav
+      - name: Generate Composer sample
+        run: python radio.py --mode composer --profile space --bars 4 --seed 421 --wav /tmp/infinite-signal-composer.wav
+      - name: Generate Radio sample
+        run: python radio.py --mode radio --sequence space,sci-fi,epic --bars 4 --seed 421 --wav /tmp/infinite-signal-radio.wav
+      - name: Validate exported WAV files
+        run: |
+          python - <<'PY'
+          import wave
+          for path in ("/tmp/infinite-signal-composer.wav", "/tmp/infinite-signal-radio.wav"):
+              with wave.open(path, "rb") as audio:
+                  assert audio.getnchannels() == 1
+                  assert audio.getsampwidth() == 2
+                  assert audio.getframerate() == 44100
+                  assert audio.getnframes() > 0
+                  print(path, audio.getnframes(), "frames")
+          PY
