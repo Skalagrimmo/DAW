@@ -2,6 +2,7 @@ import unittest
 
 from engine.generator import generate_song
 from engine.profiles import PROFILES
+from engine.radio import generate_transmission
 from engine.theory import scale_note, triad
 
 
@@ -42,6 +43,37 @@ class GeneratorTests(unittest.TestCase):
 
     def test_triad_is_ascending(self):
         self.assertEqual(triad(60, "major", 0), (60, 64, 67))
+
+
+class RadioTests(unittest.TestCase):
+    def test_radio_is_deterministic(self):
+        first = generate_transmission(("space", "sci-fi", "epic"), 4, 421)
+        second = generate_transmission(("space", "sci-fi", "epic"), 4, 421)
+        self.assertEqual(first, second)
+
+    def test_sections_overlap_by_one_bar(self):
+        song = generate_transmission(("space", "epic", "ambient"), 4, 421)
+        self.assertEqual(song["bars"], 10)
+        self.assertEqual(
+            [section["start_bar"] for section in song["sections"]],
+            [0, 3, 6],
+        )
+        self.assertEqual(len(song["harmony"]), 12)
+
+    def test_radio_keeps_tempo_and_tonal_root(self):
+        song = generate_transmission(("space", "cybernetic", "epic"), 4, 123)
+        self.assertEqual(len({section["seed"] for section in song["sections"]}), 3)
+        self.assertEqual(len({chord["notes"][0] for chord in song["harmony"][:4]}), 1)
+        self.assertTrue(all(event["step"] >= 0 for event in song["events"]))
+
+    def test_invalid_radio_sequence_is_rejected(self):
+        with self.assertRaises(ValueError):
+            generate_transmission(("space", "not-a-profile"), 4, 1)
+
+    def test_single_profile_radio(self):
+        song = generate_transmission(("ambient",), 4, 55)
+        self.assertEqual(song["bars"], 4)
+        self.assertEqual(song["profiles"], ["ambient"])
 
 
 if __name__ == "__main__":
