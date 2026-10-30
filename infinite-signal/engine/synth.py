@@ -1,8 +1,4 @@
-"""Small chip-style PCM renderer.
-
-The score generator is backend-independent. This CPython renderer produces
-mono signed 16-bit PCM and keeps the working mix in a compact float array.
-"""
+"""Lightweight NES-inspired mono PCM renderer."""
 
 from array import array
 
@@ -19,6 +15,9 @@ def _wave_value(phase, shape):
         return 1.0 - 4.0 * abs(phase - 0.5)
     if shape == "saw":
         return 2.0 * phase - 1.0
+    if shape == "pulse":
+        # A 25% duty pulse is closer to a classic game-console lead.
+        return 1.0 if phase < 0.25 else -1.0
     return 1.0 if phase < 0.5 else -1.0
 
 
@@ -41,16 +40,26 @@ def render_pcm(song, sample_rate=SAMPLE_RATE):
         voice = event["voice"]
         frequency = midi_frequency(event["note"]) if voice != "noise" else 0.0
         phase_step = frequency / sample_rate if frequency else 0.0
-        noise_state = (event["step"] * 1103515245 + event["note"] * 12345 + 7) & 0x7fffffff
+        noise_state = (
+            event["step"] * 1103515245 + event["note"] * 12345 + 7
+        ) & 0x7fffffff
 
         for index in range(start, end):
             local = index - start
             duration = max(1, end - start)
-            attack = min(1.0, local / max(1.0, sample_rate * 0.006))
-            release = min(1.0, (duration - local) / max(1.0, sample_rate * 0.025))
+            attack_ms = 0.003 if voice == "noise" else 0.004
+            release_ms = 0.035 if voice == "noise" else 0.018
+            attack = min(1.0, local / max(1.0, sample_rate * attack_ms))
+            release = min(
+                1.0,
+                (duration - local) / max(1.0, sample_rate * release_ms),
+            )
             envelope = min(attack, release)
+
             if voice == "noise":
-                noise_state = (1103515245 * noise_state + 12345) & 0x7fffffff
+                noise_state = (
+                    1103515245 * noise_state + 12345
+                ) & 0x7fffffff
                 value = ((noise_state >> 15) / 16384.0) - 1.0
             else:
                 value = _wave_value(local * phase_step, voice)
@@ -58,7 +67,7 @@ def render_pcm(song, sample_rate=SAMPLE_RATE):
 
     output = bytearray(frame_count * 2)
     for index, sample in enumerate(mix):
-        sample = max(-1.0, min(1.0, sample * 0.72))
+        sample = max(-1.0, min(1.0, sample * 0.68))
         value = int(sample * 32767)
         if value < 0:
             value += 65536
