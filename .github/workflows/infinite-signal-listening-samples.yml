@@ -35,8 +35,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Generate listening samples
         env:
-          SAMPLE_SEED: ${{ inputs.seed }}
-          SAMPLE_BARS: ${{ inputs.bars }}
+          SAMPLE_SEED: ${{ inputs.seed || '421' }}
+          SAMPLE_BARS: ${{ inputs.bars || '8' }}
         run: |
           mkdir -p listening-samples
           python radio.py --mode composer --profile retro-arcade --bars "$SAMPLE_BARS" --seed "$SAMPLE_SEED" --bpm 140 --wav listening-samples/retro-arcade-v032.wav
