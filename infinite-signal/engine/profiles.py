@@ -53,8 +53,14 @@ PROFILES = {
         "swing": 0.08,
         # Both listener-approved minor-key identities remain available.
         # Wide Leap is the default; Minor Hook is selectable in Composer.
-        "default_phrase_variant": "wide-leap",
+        "default_phrase_variant": "wide-hook",
         "phrase_variants": {
+            "wide-hook": (
+                (0, 4, 7, 5, 9, 7, 5, 4),
+                (2, 5, 9, 7, 10, 9, 7, 5),
+                (4, 7, 10, 9, 7, 5, 3, 2),
+                (2, 5, 4, 2, 0, None, 0, None),
+            ),
             "wide-leap": (
                 (0, 4, 7, 5, 9, 7, 5, 4),
                 (2, 5, 9, 7, 10, 9, 7, 5),
