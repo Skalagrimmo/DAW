@@ -51,6 +51,21 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual(PHRASE[3][2], 0)
         self.assertIsNone(PHRASE[3][3])
 
+    def test_space_uses_selected_wide_leap_phrase_and_pulse(self):
+        song = generate_song("space", bars=4, seed=421, bpm=110)
+        expected = PROFILES["space"]["phrase"]
+        self.assertEqual(song["motif"], list(expected[0]))
+        self.assertEqual(len(expected), 4)
+        self.assertEqual(expected[0], (0, 4, 7, 5, 9, 7, 5, 4))
+        noise = [
+            event for event in song["events"]
+            if event["voice"] == "noise"
+        ]
+        self.assertEqual(
+            [event["step"] for event in noise],
+            [4, 12, 20, 28, 36, 44, 52, 60],
+        )
+
     def test_melody_uses_eighth_note_grid(self):
         song = generate_song("retro-arcade", bars=4, seed=421, bpm=140)
         melody = [
