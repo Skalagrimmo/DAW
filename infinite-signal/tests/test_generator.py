@@ -51,13 +51,18 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual(PHRASE[3][2], 0)
         self.assertIsNone(PHRASE[3][3])
 
-    def test_space_default_is_wide_leap_and_pulse(self):
+    def test_space_default_is_wide_hook_and_pulse(self):
         song = generate_song("space", bars=4, seed=421, bpm=110)
-        expected = PROFILES["space"]["phrase_variants"]["wide-leap"]
-        self.assertEqual(song["phrase_variant"], "wide-leap")
+        expected = PROFILES["space"]["phrase_variants"]["wide-hook"]
+        self.assertEqual(song["phrase_variant"], "wide-hook")
         self.assertEqual(song["motif"], list(expected[0]))
         self.assertEqual(len(expected), 4)
         self.assertEqual(expected[0], (0, 4, 7, 5, 9, 7, 5, 4))
+        self.assertEqual(expected[2][-2:], (3, 2))
+        self.assertEqual(
+            expected[3],
+            PROFILES["space"]["phrase_variants"]["wide-leap"][3],
+        )
         noise = [
             event for event in song["events"]
             if event["voice"] == "noise"
