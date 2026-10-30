@@ -60,6 +60,11 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     if bars < 1 or bars > 64:
         raise ValueError("bars must be between 1 and 64")
 
+    if seed is None:
+        try:
+            seed = random.getrandbits(31)
+        except AttributeError:
+            seed = random.randint(0, 2147483647)
     rng = _RNG(seed)
     profile = PROFILES[profile_name]
     low_bpm, high_bpm = profile["bpm"]
@@ -149,7 +154,7 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
 
     events.sort(key=lambda item: item["step"])
     return {
-        "title": "%s / %s" % (profile["label"], seed if seed is not None else "random"),
+        "title": "%s / %s" % (profile["label"], seed),
         "profile": profile_name,
         "seed": seed,
         "bpm": tempo,
