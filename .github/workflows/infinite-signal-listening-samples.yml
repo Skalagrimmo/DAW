@@ -1,6 +1,9 @@
 name: Infinite Signal listening samples
 
 on:
+  push:
+    paths:
+      - ".github/workflows/infinite-signal-listening-samples.yml"
   workflow_dispatch:
     inputs:
       seed:
