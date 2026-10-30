@@ -4,7 +4,9 @@ A procedural chiptune radio and composition engine. It creates original, repeata
 
 This is an isolated Python project inside the DAW repository. It does not modify the existing Android application.
 
-## Current milestone: v0.3 — Continuous Radio
+## Current milestone: v0.3 — Continuous Radio (musical refinement in progress)
+
+The v0.3 line is being refined toward a classic 8-bit sound before any live-playback work begins. The current refinement adds a more deliberate phrase contour, stronger chord anchors, moving triangle bass, pulse-wave leads and shorter, cleaner percussive envelopes.
 
 - Ten narrative profiles: Cybernetic, Sci-Fi, Epic, Space, Dungeon, Industrial, Adventure, Horror, Retro Arcade and Ambient.
 - Deterministic generation: the same profile sequence + seed produces the same score.
@@ -20,6 +22,7 @@ This is an isolated Python project inside the DAW repository. It does not modify
 Standalone composition:
 
 ```bash
+python radio.py --mode composer --profile retro-arcade --bars 8 --seed 421 --bpm 140 --wav retro-arcade.wav
 python radio.py --mode composer --profile space --bars 8 --seed 421 --wav space-421.wav
 ```
 
@@ -66,6 +69,7 @@ This makes the music engine reusable: a game can request a mood sequence for a l
 - [x] v0.1 — seeded score generation and WAV export.
 - [x] v0.2 — phrase structure, chord-aware layers and cadence.
 - [x] v0.3 — multi-profile continuous score with bar-boundary overlaps.
+- [ ] v0.3.1 — musical refinement: classic 8-bit phrasing, bass movement and pulse synthesis.
 - [ ] v0.4 — live playback backend and longer-running stream scheduler.
 - [ ] v0.5 — visual radio interface.
 - [ ] v1.0 — MicroPython hardware backend.
