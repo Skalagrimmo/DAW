@@ -51,14 +51,23 @@ PROFILES = {
         "wave": "pulse",
         "brightness": 0.48,
         "swing": 0.08,
-        # Wide-leap, minor-key call/response contour selected from v0.3.3
-        # listening tests. Eight eighth-note slots per bar, four-bar phrase.
-        "phrase": (
-            (0, 4, 7, 5, 9, 7, 5, 4),
-            (2, 5, 9, 7, 10, 9, 7, 5),
-            (4, 7, 10, 9, 7, 5, 4, 2),
-            (2, 5, 4, 2, 0, None, 0, None),
-        ),
+        # Both listener-approved minor-key identities remain available.
+        # Wide Leap is the default; Minor Hook is selectable in Composer.
+        "default_phrase_variant": "wide-leap",
+        "phrase_variants": {
+            "wide-leap": (
+                (0, 4, 7, 5, 9, 7, 5, 4),
+                (2, 5, 9, 7, 10, 9, 7, 5),
+                (4, 7, 10, 9, 7, 5, 4, 2),
+                (2, 5, 4, 2, 0, None, 0, None),
+            ),
+            "minor-hook": (
+                (0, 3, 2, 0, 2, 3, 5, 3),
+                (2, 5, 3, 2, 3, 5, 7, 5),
+                (3, 7, 5, 3, 5, 7, 9, 7),
+                (2, 3, 2, 0, None, 0, None, 0),
+            ),
+        },
     },
     "dungeon": {
         "label": "Dungeon",
