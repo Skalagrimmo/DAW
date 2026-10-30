@@ -1,0 +1,64 @@
+name: Infinite Signal listening samples
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Deterministic generation seed"
+        required: true
+        default: "421"
+        type: string
+      bars:
+        description: "Bars per composition / radio section"
+        required: true
+        default: "8"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infinite-signal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run tests before generating samples
+        run: python -m unittest discover -s tests -v
+      - name: Generate listening samples
+        env:
+          SAMPLE_SEED: ${{ inputs.seed }}
+          SAMPLE_BARS: ${{ inputs.bars }}
+        run: |
+          mkdir -p listening-samples
+          python radio.py --mode composer --profile retro-arcade --bars "$SAMPLE_BARS" --seed "$SAMPLE_SEED" --bpm 140 --wav listening-samples/retro-arcade-v032.wav
+          python radio.py --mode composer --profile space --bars "$SAMPLE_BARS" --seed "$SAMPLE_SEED" --bpm 110 --wav listening-samples/space-v032.wav
+          python radio.py --mode radio --sequence retro-arcade,adventure,retro-arcade --bars "$SAMPLE_BARS" --seed "$SAMPLE_SEED" --bpm 140 --wav listening-samples/transmission-v032.wav
+      - name: Validate WAV samples
+        run: |
+          python - <<'PY'
+          import glob
+          import wave
+
+          paths = sorted(glob.glob("listening-samples/*.wav"))
+          assert len(paths) == 3, f"Expected 3 WAV files, found {len(paths)}"
+          for path in paths:
+              with wave.open(path, "rb") as audio:
+                  assert audio.getnchannels() == 1
+                  assert audio.getsampwidth() == 2
+                  assert audio.getframerate() == 22050
+                  assert audio.getnframes() > 0
+                  print(f"{path}: {audio.getnframes()} frames")
+          PY
+      - name: Upload listening samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: infinite-signal-listening-samples
+          path: infinite-signal/listening-samples/*.wav
+          if-no-files-found: error
+          retention-days: 14
