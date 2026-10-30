@@ -63,7 +63,8 @@ class RadioTests(unittest.TestCase):
     def test_radio_keeps_tempo_and_tonal_root(self):
         song = generate_transmission(("space", "cybernetic", "epic"), 4, 123)
         self.assertEqual(len({section["seed"] for section in song["sections"]}), 3)
-        self.assertEqual(len({chord["notes"][0] for chord in song["harmony"][:4]}), 1)
+        section_roots = [song["harmony"][index]["notes"][0] for index in (0, 4, 8)]
+        self.assertEqual(len(set(section_roots)), 1)
         self.assertTrue(all(event["step"] >= 0 for event in song["events"]))
 
     def test_invalid_radio_sequence_is_rejected(self):
