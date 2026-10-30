@@ -1,4 +1,8 @@
-"""Seeded, structured chiptune composition generator."""
+"""Seeded, structured chiptune composition generator.
+
+The tiny PRNG below avoids relying on random.Random, which is not present
+in every MicroPython build.
+"""
 
 import random
 
@@ -7,6 +11,31 @@ from .profiles import PROFILES, SCALES
 NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 STEPS_PER_BAR = 16
 ROOT_MIDI = 48
+
+
+class _RNG:
+    def __init__(self, seed):
+        if seed is None:
+            try:
+                seed = random.getrandbits(32)
+            except AttributeError:
+                seed = random.randint(0, 2147483647)
+        self.state = int(seed) & 0x7fffffff
+        if self.state == 0:
+            self.state = 1
+
+    def _next(self):
+        self.state = (1103515245 * self.state + 12345) & 0x7fffffff
+        return self.state
+
+    def random(self):
+        return self._next() / 2147483648.0
+
+    def randint(self, low, high):
+        return low + (self._next() % (high - low + 1))
+
+    def choice(self, values):
+        return values[self._next() % len(values)]
 
 
 def midi_name(note):
@@ -31,7 +60,7 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     if bars < 1 or bars > 64:
         raise ValueError("bars must be between 1 and 64")
 
-    rng = random.Random(seed)
+    rng = _RNG(seed)
     profile = PROFILES[profile_name]
     low_bpm, high_bpm = profile["bpm"]
     tempo = int(bpm if bpm is not None else rng.randint(low_bpm, high_bpm))
@@ -43,7 +72,6 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     progression = profile["progression"]
     events = []
     motif = []
-    previous_degree = 3
 
     for bar in range(bars):
         chord_degree = progression[bar % len(progression)]
@@ -55,7 +83,6 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
         )
         bar_start = bar * STEPS_PER_BAR
 
-        # Bass anchors the harmony on each beat.
         for beat in range(4):
             bass_note = chord[0] - 24
             if beat == 2 and rng.random() < 0.35:
@@ -68,7 +95,6 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
                 "volume": 0.34,
             })
 
-        # A small melodic motif is introduced, then varied on later bars.
         for step in range(0, STEPS_PER_BAR, 2):
             if rng.random() > profile["melody_density"]:
                 continue
@@ -94,9 +120,7 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
                 "voice": profile["wave"],
                 "volume": 0.22 + profile["brightness"] * 0.12,
             })
-            previous_degree = degree
 
-        # Arpeggio layer: deliberately sparse on atmospheric profiles.
         for step in range(0, STEPS_PER_BAR, 2):
             if rng.random() < profile["arp_density"]:
                 tone = rng.choice(chord)
@@ -108,7 +132,6 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
                     "volume": 0.10,
                 })
 
-        # Lightweight rhythm patterns; noise is synthesized by the backend.
         pattern = profile["drum_pattern"]
         if pattern != "none":
             for beat in range(4):
