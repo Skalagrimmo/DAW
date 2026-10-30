@@ -1,4 +1,4 @@
-"""Seeded, phrase-based chiptune composition generator."""
+"""Seeded, phrase-based classic 8-bit composition generator."""
 
 import random
 
@@ -8,6 +8,15 @@ from .theory import scale_note, triad
 STEPS_PER_BAR = 16
 ROOT_MIDI = 48
 MELODY_SLOTS = 8
+
+# Relative scale-degree contour for a four-bar call / response phrase.
+# The final bar deliberately descends and leaves space around the tonic.
+PHRASE = (
+    (0, 2, 4, 2, 4, 2, 1, 2),
+    (2, 4, 5, 4, 2, 4, 5, 4),
+    (4, 5, 7, 5, 4, 2, 1, 2),
+    (2, 1, 0, None, 0, None, 0, None),
+)
 
 
 class _RNG:
@@ -38,42 +47,19 @@ def _new_seed():
         return random.randint(0, 2147483647)
 
 
-def _make_motif(rng, profile, progression):
-    """Build a one-bar motif with chord tones on strong eighth-note slots."""
-    motif = []
-    previous = progression[0]
-    for slot in range(MELODY_SLOTS):
-        chord_degree = progression[0 if slot < 4 else 1]
-        required = slot in (0, 4, 7)
-        if not required and rng.random() > profile["melody_density"]:
-            motif.append(None)
-            continue
-
-        if slot == 0:
-            degree = progression[0]
-        elif slot == 4:
-            degree = progression[1]
-        elif slot == 7:
-            degree = 0
-        elif slot % 2 == 0:
-            degree = rng.choice((
-                chord_degree, chord_degree + 2, chord_degree + 4,
-            ))
-        else:
-            # Passing tones move by step instead of jumping randomly.
-            degree = previous + rng.choice((-1, 1))
-            if rng.random() < 0.25:
-                degree = previous + rng.choice((-2, 2))
-
-        degree = max(0, min(degree, 10))
-        motif.append(degree)
-        previous = degree
-
-    return motif
+def _arp_slots(density):
+    """Choose a regular arpeggio rhythm instead of random note placement."""
+    if density >= 0.55:
+        return tuple(range(8))
+    if density >= 0.35:
+        return (0, 2, 4, 6)
+    if density >= 0.20:
+        return (0, 4)
+    return (0,)
 
 
 def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
-    """Generate a score with repeated phrases, bass movement and cadence."""
+    """Generate a score with four-bar phrases, moving bass and cadence."""
     if profile_name not in PROFILES:
         raise ValueError("Unknown profile: %s" % profile_name)
     if bars < 1 or bars > 64:
@@ -91,9 +77,10 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     scale = profile["scale"]
     root = ROOT_MIDI + rng.choice((0, 2, 3, 5, 7, 9, 10))
     progression = profile["progression"]
-    motif = _make_motif(rng, profile, progression)
     events = []
     harmony = []
+    motif = list(PHRASE[0])
+    arp_slots = _arp_slots(profile["arp_density"])
 
     for bar in range(bars):
         chord_degree = progression[bar % len(progression)]
@@ -102,54 +89,56 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
         chord = triad(root, scale, chord_degree)
         harmony.append({"bar": bar, "degree": chord_degree, "notes": chord})
         bar_start = bar * STEPS_PER_BAR
+        phrase_bar = bar % 4
+        contour = PHRASE[phrase_bar]
 
-        # NES-style triangle bass: root pulses with fifth/third movement.
-        bass_pattern = (chord[0], chord[0], chord[2], chord[1])
+        # Triangle bass sits in a more audible register and outlines the chord.
+        bass_pattern = (chord[0], chord[0], chord[2], chord[0])
         for beat, bass_pitch in enumerate(bass_pattern):
             events.append({
                 "step": bar_start + beat * 4,
-                "length": 4,
-                "note": bass_pitch - 24,
+                "length": 3,
+                "note": bass_pitch - 12,
                 "voice": "triangle",
-                "volume": 0.30,
+                "volume": 0.22,
             })
 
-        # Repeated eighth-note motif; small changes arrive every four bars.
-        for slot, base_degree in enumerate(motif):
-            if base_degree is None:
+        # A repeated four-bar melody: strong beats carry chord tones;
+        # weak slots may be omitted according to the profile's density.
+        for slot, offset in enumerate(contour):
+            if offset is None:
                 continue
-            degree = base_degree
-            if bar >= 4 and bar % 4 in (2, 3) and slot in (2, 6):
-                if rng.random() < 0.30:
-                    degree = max(0, min(10, degree + rng.choice((-1, 1))))
+            anchor = slot in (0, 4, 7)
+            if not anchor and rng.random() > profile["melody_density"]:
+                continue
 
-            # Land on the current chord at the start of each half-bar.
-            if slot == 0:
-                degree = chord_degree
-            elif slot == 4:
-                degree = chord_degree + 2
+            degree = chord_degree + offset
+            # Resolve the last phrase toward the tonic rather than looping
+            # an unresolved contour at the end of a standalone composition.
+            if bar == bars - 1 and bars >= 4 and slot in (0, 2, 4, 6):
+                degree = 0 if slot >= 2 else 2
 
             note = scale_note(root, scale, degree, octave=2)
-            note_length = 3 if slot in (0, 4, 7) else rng.choice((2, 2, 3))
+            note_length = 3 if slot in (0, 4) else 2
             events.append({
                 "step": bar_start + slot * 2,
                 "length": note_length,
                 "note": note,
                 "voice": profile["wave"],
-                "volume": 0.28 + profile["brightness"] * 0.10,
+                "volume": 0.24 + profile["brightness"] * 0.05,
             })
 
-        # Short eighth-note arpeggios reinforce the active triad.
-        for slot in range(8):
-            if rng.random() < profile["arp_density"]:
-                tone = chord[slot % 3] + 12
-                events.append({
-                    "step": bar_start + slot * 2,
-                    "length": 2,
-                    "note": tone,
-                    "voice": "square",
-                    "volume": 0.075,
-                })
+        # Regular up / down triad arpeggio; density changes the rhythm,
+        # not the pitch order, so it stays musical and predictable.
+        arp_order = (0, 1, 2, 1, 0, 1, 2, 1)
+        for slot in arp_slots:
+            events.append({
+                "step": bar_start + slot * 2,
+                "length": 2,
+                "note": chord[arp_order[slot]] + 12,
+                "voice": "square",
+                "volume": 0.045,
+            })
 
         pattern = profile["drum_pattern"]
         if pattern != "none":
@@ -167,7 +156,7 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
                         "length": 1,
                         "note": 0,
                         "voice": "noise",
-                        "volume": 0.10 if pattern != "machine" else 0.13,
+                        "volume": 0.075 if pattern == "machine" else 0.055,
                     })
 
     events.sort(key=lambda item: (item["step"], item["voice"]))
