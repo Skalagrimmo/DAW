@@ -1,0 +1,27 @@
+name: Infinite Signal tests
+
+on:
+  push:
+    paths:
+      - "infinite-signal/**"
+      - ".github/workflows/infinite-signal.yml"
+  pull_request:
+    paths:
+      - "infinite-signal/**"
+      - ".github/workflows/infinite-signal.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infinite-signal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run generator tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate sample transmission
+        run: python radio.py --profile space --bars 4 --seed 421 --wav /tmp/infinite-signal.wav
