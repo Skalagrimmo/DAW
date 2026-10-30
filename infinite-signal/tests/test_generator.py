@@ -84,7 +84,7 @@ class GeneratorTests(unittest.TestCase):
         chord = song["harmony"][0]["notes"]
         self.assertEqual(
             [event["note"] for event in arp],
-            [chord[0] + 12, chord[2] + 12, chord[1] + 12, chord[2] + 12],
+            [chord[0] + 12, chord[2] + 12, chord[0] + 12, chord[2] + 12],
         )
 
 
