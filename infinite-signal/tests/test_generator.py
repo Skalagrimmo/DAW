@@ -1,6 +1,6 @@
 import unittest
 
-from engine.generator import generate_song
+from engine.generator import PHRASE, generate_song
 from engine.profiles import PROFILES
 from engine.radio import generate_transmission
 from engine.theory import scale_note, triad
@@ -44,7 +44,14 @@ class GeneratorTests(unittest.TestCase):
     def test_triad_is_ascending(self):
         self.assertEqual(triad(60, "major", 0), (60, 64, 67))
 
-    def test_melody_uses_eighth_note_grid_and_phrase_anchors(self):
+    def test_four_bar_phrase_has_call_response_and_cadence(self):
+        self.assertEqual(len(PHRASE), 4)
+        self.assertEqual(PHRASE[0][0], 0)
+        self.assertEqual(PHRASE[2][0], 4)
+        self.assertEqual(PHRASE[3][2], 0)
+        self.assertIsNone(PHRASE[3][3])
+
+    def test_melody_uses_eighth_note_grid(self):
         song = generate_song("retro-arcade", bars=4, seed=421, bpm=140)
         melody = [
             event for event in song["events"]
@@ -53,21 +60,31 @@ class GeneratorTests(unittest.TestCase):
         self.assertTrue(melody)
         self.assertTrue(all(event["step"] % 2 == 0 for event in melody))
         self.assertTrue(all(event["length"] in (2, 3) for event in melody))
-        first_bar = [event for event in melody if event["step"] < 16]
-        self.assertTrue(any(event["step"] == 0 for event in first_bar))
-        self.assertTrue(any(event["step"] == 14 for event in first_bar))
 
-    def test_bass_has_root_fifth_third_movement(self):
+    def test_bass_has_root_fifth_root_movement_in_audible_register(self):
         song = generate_song("space", bars=1, seed=421, bpm=90)
         bass = [
             event for event in song["events"]
-            if event["voice"] == "triangle" and event["length"] == 4 and event["step"] in (0, 4, 8, 12)
+            if event["voice"] == "triangle" and event["length"] == 3
         ]
         self.assertEqual(len(bass), 4)
         chord = song["harmony"][0]["notes"]
         self.assertEqual(
             [event["note"] for event in bass],
-            [chord[0] - 24, chord[0] - 24, chord[2] - 24, chord[1] - 24],
+            [chord[0] - 12, chord[0] - 12, chord[2] - 12, chord[0] - 12],
+        )
+
+    def test_arpeggio_uses_regular_up_down_pattern(self):
+        song = generate_song("retro-arcade", bars=1, seed=421, bpm=140)
+        arp = [
+            event for event in song["events"]
+            if event["voice"] == "square"
+        ]
+        self.assertEqual([event["step"] for event in arp], [0, 4, 8, 12])
+        chord = song["harmony"][0]["notes"]
+        self.assertEqual(
+            [event["note"] for event in arp],
+            [chord[0] + 12, chord[2] + 12, chord[1] + 12, chord[2] + 12],
         )
 
 
