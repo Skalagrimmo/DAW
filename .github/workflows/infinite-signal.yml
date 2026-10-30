@@ -33,36 +33,46 @@ jobs:
           python radio.py --mode composer --profile retro-arcade --bars 8 --seed 421 --bpm 140 --wav /tmp/infinite-signal-listening/retro-arcade-v032.wav
           python radio.py --mode composer --profile space --bars 8 --seed 421 --bpm 110 --wav /tmp/infinite-signal-listening/space-v032.wav
           python radio.py --mode radio --sequence retro-arcade,adventure,retro-arcade --bars 8 --seed 421 --bpm 140 --wav /tmp/infinite-signal-listening/transmission-v032.wav
-      - name: Generate Space profile A/B candidates
+      - name: Generate Space melody candidates on pulse foundation
         run: |
           python - <<'PY'
           from copy import deepcopy
-          from engine.generator import generate_song
+          import engine.generator as generator
           from engine.profiles import PROFILES
           from engine.wav_export import write_wav
 
-          original = deepcopy(PROFILES["space"])
+          original_profile = deepcopy(PROFILES["space"])
+          original_phrase = generator.PHRASE
+          pulse_profile = deepcopy(original_profile)
+          pulse_profile.update({
+              "melody_density": 0.52,
+              "arp_density": 0.36,
+              "drum_pattern": "pulse",
+              "brightness": 0.48,
+          })
+          PROFILES["space"] = pulse_profile
+
           candidates = {
-              "space-melody-candidate-v033.wav": {
-                  "melody_density": 0.62,
-                  "arp_density": 0.24,
-                  "drum_pattern": "sparse",
-                  "brightness": 0.48,
-              },
-              "space-pulse-candidate-v033.wav": {
-                  "melody_density": 0.52,
-                  "arp_density": 0.36,
-                  "drum_pattern": "pulse",
-                  "brightness": 0.48,
-              },
+              "space-wide-leap-v033.wav": (
+                  (0, 4, 7, 5, 9, 7, 5, 4),
+                  (2, 5, 9, 7, 10, 9, 7, 5),
+                  (4, 7, 10, 9, 7, 5, 4, 2),
+                  (2, 5, 4, 2, 0, None, 0, None),
+              ),
+              "space-minor-hook-v033.wav": (
+                  (0, 3, 2, 0, 2, 3, 5, 3),
+                  (2, 5, 3, 2, 3, 5, 7, 5),
+                  (3, 7, 5, 3, 5, 7, 9, 7),
+                  (2, 3, 2, 0, None, 0, None, 0),
+              ),
           }
-          for filename, changes in candidates.items():
-              profile = deepcopy(original)
-              profile.update(changes)
-              PROFILES["space"] = profile
-              score = generate_song("space", bars=8, seed=421, bpm=110)
+          for filename, phrase in candidates.items():
+              generator.PHRASE = phrase
+              score = generator.generate_song("space", bars=8, seed=421, bpm=110)
               write_wav(score, "/tmp/infinite-signal-listening/" + filename)
-          PROFILES["space"] = original
+
+          generator.PHRASE = original_phrase
+          PROFILES["space"] = original_profile
           PY
       - name: Validate exported WAV files
         run: |
