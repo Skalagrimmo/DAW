@@ -31,48 +31,32 @@ jobs:
         run: |
           mkdir -p /tmp/infinite-signal-listening
           python radio.py --mode composer --profile retro-arcade --bars 8 --seed 421 --bpm 140 --wav /tmp/infinite-signal-listening/retro-arcade-v032.wav
-          python radio.py --mode composer --profile space --bars 8 --seed 421 --bpm 110 --wav /tmp/infinite-signal-listening/space-v032.wav
           python radio.py --mode radio --sequence retro-arcade,adventure,retro-arcade --bars 8 --seed 421 --bpm 140 --wav /tmp/infinite-signal-listening/transmission-v032.wav
-      - name: Generate Space melody candidates on pulse foundation
+      - name: Generate Space v0.3.3 listening candidates
         run: |
           python - <<'PY'
-          from copy import deepcopy
           import engine.generator as generator
           from engine.profiles import PROFILES
           from engine.wav_export import write_wav
 
-          original_profile = deepcopy(PROFILES["space"])
-          original_phrase = generator.PHRASE
-          pulse_profile = deepcopy(original_profile)
-          pulse_profile.update({
-              "melody_density": 0.52,
-              "arp_density": 0.36,
-              "drum_pattern": "pulse",
-              "brightness": 0.48,
-          })
-          PROFILES["space"] = pulse_profile
+          production_phrase = generator.PHRASE
+          profile_phrase = PROFILES["space"]["phrase"]
+          score = generator.generate_song("space", bars=8, seed=421, bpm=110)
+          write_wav(score, "/tmp/infinite-signal-listening/space-v033-wide-leap.wav")
 
-          candidates = {
-              "space-wide-leap-v033.wav": (
-                  (0, 4, 7, 5, 9, 7, 5, 4),
-                  (2, 5, 9, 7, 10, 9, 7, 5),
-                  (4, 7, 10, 9, 7, 5, 4, 2),
-                  (2, 5, 4, 2, 0, None, 0, None),
-              ),
-              "space-minor-hook-v033.wav": (
-                  (0, 3, 2, 0, 2, 3, 5, 3),
-                  (2, 5, 3, 2, 3, 5, 7, 5),
-                  (3, 7, 5, 3, 5, 7, 9, 7),
-                  (2, 3, 2, 0, None, 0, None, 0),
-              ),
-          }
-          for filename, phrase in candidates.items():
-              generator.PHRASE = phrase
-              score = generator.generate_song("space", bars=8, seed=421, bpm=110)
-              write_wav(score, "/tmp/infinite-signal-listening/" + filename)
+          minor_hook = (
+              (0, 3, 2, 0, 2, 3, 5, 3),
+              (2, 5, 3, 2, 3, 5, 7, 5),
+              (3, 7, 5, 3, 5, 7, 9, 7),
+              (2, 3, 2, 0, None, 0, None, 0),
+          )
+          generator.PHRASE = minor_hook
+          PROFILES["space"]["phrase"] = minor_hook
+          score = generator.generate_song("space", bars=8, seed=421, bpm=110)
+          write_wav(score, "/tmp/infinite-signal-listening/space-minor-hook-candidate-v033.wav")
 
-          generator.PHRASE = original_phrase
-          PROFILES["space"] = original_profile
+          generator.PHRASE = production_phrase
+          PROFILES["space"]["phrase"] = profile_phrase
           PY
       - name: Validate exported WAV files
         run: |
@@ -84,7 +68,7 @@ jobs:
               "/tmp/infinite-signal-radio.wav",
               *glob.glob("/tmp/infinite-signal-listening/*.wav"),
           ]
-          assert len(paths) == 7, f"Expected 7 WAV files, found {len(paths)}"
+          assert len(paths) == 6, f"Expected 6 WAV files, found {len(paths)}"
           for path in paths:
               with wave.open(path, "rb") as audio:
                   assert audio.getnchannels() == 1
