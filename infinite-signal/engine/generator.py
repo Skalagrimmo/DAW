@@ -77,9 +77,10 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     scale = profile["scale"]
     root = ROOT_MIDI + rng.choice((0, 2, 3, 5, 7, 9, 10))
     progression = profile["progression"]
+    phrase = profile.get("phrase", PHRASE)
     events = []
     harmony = []
-    motif = list(PHRASE[0])
+    motif = list(phrase[0])
     arp_slots = _arp_slots(profile["arp_density"])
 
     for bar in range(bars):
@@ -90,7 +91,7 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
         harmony.append({"bar": bar, "degree": chord_degree, "notes": chord})
         bar_start = bar * STEPS_PER_BAR
         phrase_bar = bar % 4
-        contour = PHRASE[phrase_bar]
+        contour = phrase[phrase_bar]
 
         # Triangle bass sits in a more audible register and outlines the chord.
         bass_pattern = (chord[0], chord[0], chord[2], chord[0])
