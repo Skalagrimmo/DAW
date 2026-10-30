@@ -2,6 +2,7 @@ import unittest
 
 from engine.generator import generate_song
 from engine.profiles import PROFILES
+from engine.theory import scale_note, triad
 
 
 class GeneratorTests(unittest.TestCase):
@@ -12,18 +13,35 @@ class GeneratorTests(unittest.TestCase):
             self.assertEqual(song["profile"], profile)
 
     def test_seed_is_deterministic(self):
-        first = generate_song("cybernetic", bars=8, seed=421)
-        second = generate_song("cybernetic", bars=8, seed=421)
-        self.assertEqual(first, second)
+        self.assertEqual(
+            generate_song("cybernetic", bars=8, seed=421),
+            generate_song("cybernetic", bars=8, seed=421),
+        )
 
     def test_different_seeds_change_score(self):
-        first = generate_song("space", bars=8, seed=1)
-        second = generate_song("space", bars=8, seed=2)
-        self.assertNotEqual(first, second)
+        self.assertNotEqual(
+            generate_song("space", bars=8, seed=1),
+            generate_song("space", bars=8, seed=2),
+        )
 
     def test_tempo_override(self):
-        song = generate_song("epic", bars=4, seed=9, bpm=120)
-        self.assertEqual(song["bpm"], 120)
+        self.assertEqual(generate_song("epic", bars=4, seed=9, bpm=120)["bpm"], 120)
+
+    def test_final_bar_resolves_to_tonic(self):
+        song = generate_song("epic", bars=8, seed=421)
+        self.assertEqual(song["harmony"][-1]["degree"], 0)
+
+    def test_harmony_has_one_chord_per_bar(self):
+        song = generate_song("space", bars=12, seed=77)
+        self.assertEqual(len(song["harmony"]), 12)
+        for chord in song["harmony"]:
+            self.assertEqual(len(chord["notes"]), 3)
+
+    def test_scale_helper_crosses_octaves(self):
+        self.assertEqual(scale_note(60, "major", 7), 72)
+
+    def test_triad_is_ascending(self):
+        self.assertEqual(triad(60, "major", 0), (60, 64, 67))
 
 
 if __name__ == "__main__":
