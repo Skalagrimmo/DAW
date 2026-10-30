@@ -4,6 +4,8 @@ Sections overlap by one bar. The outgoing section fades down while the
 incoming section fades up, keeping the pulse continuous at mood boundaries.
 """
 
+import random
+
 from .generator import generate_song
 from .profiles import PROFILES
 
@@ -35,6 +37,8 @@ def generate_transmission(
     """
     if profiles is None:
         profiles = DEFAULT_SEQUENCE
+    if seed is None:
+        seed = random.getrandbits(31)
     profiles = tuple(profiles)
     if not profiles:
         raise ValueError("at least one profile is required")
