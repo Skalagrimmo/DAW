@@ -24,6 +24,10 @@ def main():
     )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--bpm", type=int, default=None)
+    parser.add_argument(
+        "--variant", default=None,
+        help="Melody variant for profiles that provide alternatives (composer mode)",
+    )
     parser.add_argument("--wav", default="infinite-signal.wav")
     parser.add_argument("--list-profiles", action="store_true")
     args = parser.parse_args()
@@ -34,13 +38,18 @@ def main():
         return
 
     if args.mode == "radio":
+        if args.variant is not None:
+            parser.error("--variant is only available in composer mode")
         sequence = tuple(item.strip() for item in args.sequence.split(",") if item.strip())
         song = generate_transmission(
             profiles=sequence, bars_per_section=args.bars,
             seed=args.seed, bpm=args.bpm,
         )
     else:
-        song = generate_song(args.profile, args.bars, args.seed, args.bpm)
+        song = generate_song(
+            args.profile, args.bars, args.seed, args.bpm,
+            phrase_variant=args.variant,
+        )
 
     output = write_wav(song, args.wav)
     duration = song["bars"] * 4 * 60.0 / song["bpm"]
