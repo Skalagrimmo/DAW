@@ -58,7 +58,7 @@ def _arp_slots(density):
     return (0,)
 
 
-def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
+def generate_song(profile_name="space", bars=8, seed=None, bpm=None, phrase_variant=None):
     """Generate a score with four-bar phrases, moving bass and cadence."""
     if profile_name not in PROFILES:
         raise ValueError("Unknown profile: %s" % profile_name)
@@ -77,7 +77,21 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
     scale = profile["scale"]
     root = ROOT_MIDI + rng.choice((0, 2, 3, 5, 7, 9, 10))
     progression = profile["progression"]
-    phrase = profile.get("phrase", PHRASE)
+    variants = profile.get("phrase_variants", {})
+    selected_variant = phrase_variant
+    if variants:
+        if selected_variant is None:
+            selected_variant = profile.get("default_phrase_variant")
+        if selected_variant not in variants:
+            raise ValueError(
+                "Unknown phrase variant for %s: %s"
+                % (profile_name, selected_variant)
+            )
+        phrase = variants[selected_variant]
+    else:
+        if phrase_variant is not None:
+            raise ValueError("Profile %s has no phrase variants" % profile_name)
+        phrase = profile.get("phrase", PHRASE)
     events = []
     harmony = []
     motif = list(phrase[0])
@@ -165,5 +179,6 @@ def generate_song(profile_name="space", bars=8, seed=None, bpm=None):
         "title": "%s / %s" % (profile["label"], seed),
         "profile": profile_name, "seed": seed, "bpm": tempo,
         "bars": bars, "steps_per_bar": STEPS_PER_BAR, "root_midi": root,
+        "phrase_variant": selected_variant,
         "motif": motif, "harmony": harmony, "events": events,
     }
